@@ -10,6 +10,7 @@ jobs:
     runs-on: self-hosted
     env:
       IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/musicapp-backend:latest
+      KUBECONFIG: $HOME\.kube\config
 
     steps:
       - name: Checkout code
@@ -30,11 +31,24 @@ jobs:
           $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KUBE_CONFIG }}"))
           Set-Content -Path "$HOME\.kube\config" -Value $decoded
 
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Verify cluster access
+        run: kubectl cluster-info
+
       - name: Deploy Dhunn via Helm
         run: |
           helm upgrade --install dhunn-backend-helm ./musicapp-helm/dhunn-backend-chart --namespace musicapp-net --create-namespace
 
-      - name: Deploy mysql via Helm
+      - name: Deploy MySQL via Helm
         run: |
           helm upgrade --install dhunn-mysql-helm ./musicapp-helm/dhunn-mysql-chart --namespace musicapp-net --create-namespace
 
@@ -42,37 +56,35 @@ jobs:
         run: |
           helm upgrade --install ingress-helm ./musicapp-helm/ingress --namespace musicapp-net --create-namespace
 
-
       - name: Install Prometheus via Helm
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
-           helm upgrade --install prometheus-helm prometheus-community/prometheus --namespace monitoring --create-namespace `
-            -f ./helm/prometheus-values.yaml
-          helm upgrade --install prometheus-custom-helm ./musicapp-helm/prometheus-chart --namespace monitoring --create-namespace `
+          helm upgrade --install prometheus-helm prometheus-community/prometheus --namespace monitoring --create-namespace -f ./helm/prometheus-values.yaml
+          helm upgrade --install prometheus-custom-helm ./musicapp-helm/prometheus-chart --namespace monitoring --create-namespace
 
-      - name: Install Grafana via Helm (Local Chart with values)
+      - name: Install Grafana via Helm
         run: |
-          helm upgrade --install grafana ./musicapp-helm/grafana-chart --namespace monitoring --create-namespace `
-            -f ./helm/grafana-chart/values.yaml
+          helm upgrade --install grafana ./musicapp-helm/grafana-chart --namespace monitoring --create-namespace -f ./helm/grafana-chart/values.yaml
+
+      - name: Wait for pods to be ready
+        run: kubectl wait --for=condition=Ready pods --all --namespace musicapp-net --timeout=120s
 
       - name: Post-deploy health check
         shell: powershell
         run: |
           try {
-          $resp = Invoke-WebRequest -Uri http://devops.local/healthz -UseBasicParsing
-          if ($resp.StatusCode -ne 200) {
-            Write-Host "Health check failed with status: $($resp.StatusCode)"
-            Write-Host "Response content:"
-            Write-Host $resp.Content
-            throw "Health check failed"
-          } else {
-            Write-Host "Health check passed: $($resp.StatusCode)"
-          }
+            $resp = Invoke-WebRequest -Uri http://devops.local/healthz -UseBasicParsing
+            if ($resp.StatusCode -ne 200) {
+              Write-Host "Health check failed with status: $($resp.StatusCode)"
+              Write-Host "Response content:"
+              Write-Host $resp.Content
+              throw "Health check failed"
+            } else {
+              Write-Host "Health check passed: $($resp.StatusCode)"
+            }
           } catch {
             Write-Host "Exception during health check:"
             Write-Host $_.Exception.Message
             throw
           }
-
-
