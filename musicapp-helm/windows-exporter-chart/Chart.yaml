@@ -1,0 +1,6 @@
+apiVersion: v2
+name: windows-exporter-chart
+description: A Helm chart for windows-exporter
+type: application
+version: 0.1.0
+appVersion: "1.16.0"

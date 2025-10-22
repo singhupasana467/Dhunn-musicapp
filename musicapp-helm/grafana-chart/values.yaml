@@ -1,0 +1,19 @@
+#values.yaml
+persistence:
+  enabled: true
+  size: 5Gi
+  accessModes: ReadWriteOnce
+  storageClassName: hostpath
+
+smtp:
+  enabled: true
+  host: smtp.gmail.com:587
+  user: tmtechmail89@gmail.com
+  password: uvbc uujh anwq xlfb
+  from_address: tmtechmail89@gmail.com
+  from_name: techmail
+  skip_verify: true
+
+server:
+  root_url: http://grafana.devops.local
+

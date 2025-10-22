@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  default:
+    external:
+      name: musicapp-net
+
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: build.dockerfile
+    container_name: musicapp-builder
+    volumes:
+      - ./output:/workspace/musicapp/target
+    entrypoint: ["/entrypoint.sh"]
+
+  backend:
+    image: eclipse-temurin:17-jdk
+    container_name: musicapp-backend
+    volumes:
+      - ./output:/app
+    working_dir: /app
+    command: ["java", "-jar", "music-0.0.1-SNAPSHOT.jar"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - builder
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/musicdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+
+  debug:
+    image: nicolaka/netshoot
+    command: sleep infinity
+    networks:
+      - default

@@ -1,0 +1,35 @@
+# backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: musicapp-backend
+  namespace: musicapp-net
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: musicapp-backend
+  template:
+    metadata:
+      labels:
+        app: musicapp-backend
+    spec:
+      containers:
+        - name: musicapp-backend
+          image: techietech/musicapp-backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.musicapp-net.svc.cluster.local:3306/musicdb
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1024Mi
+            limits:
+              cpu: 2000m
+              memory: 2048Mi
