@@ -31,15 +31,11 @@ jobs:
           $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KUBE_CONFIG }}"))
           Set-Content -Path "$HOME\.kube\config" -Value $decoded
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
+      - name: Verify Helm installation
+        run: helm version
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: 'latest'
+      - name: Verify kubectl installation
+        run: kubectl version --client
 
       - name: Verify cluster access
         run: kubectl cluster-info
