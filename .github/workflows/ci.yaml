@@ -23,11 +23,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Copy kubeconfig
+      - name: Set up kubeconfig
         shell: powershell
         run: |
-          Copy-Item "C:\Users\timbe\.kube\config" "$HOME\.kube\config"
-
+          if (-Not (Test-Path "$HOME\.kube")) {
+            New-Item -ItemType Directory -Path "$HOME\.kube" | Out-Null
+          }
+          $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KUBE_CONFIG }}"))
+          Set-Content -Path "$HOME\.kube\config" -Value $decoded
 
       - name: Verify Helm installation
         run: helm version
