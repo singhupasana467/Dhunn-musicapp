@@ -58,7 +58,7 @@ jobs:
 
       - name: Install Grafana via Helm
         run: |
-          helm upgrade --install grafana ./musicapp-helm/grafana-chart --namespace monitoring --create-namespace -f ./helm/grafana-chart/values.yaml
+          helm upgrade --install grafana ./musicapp-helm/grafana-chart --namespace monitoring --create-namespace -f ./musicapp-helm/grafana-chart/values.yaml
 
       - name: Wait for pods to be ready
         run: kubectl wait --for=condition=Ready pods --all --namespace musicapp-net --timeout=120s
