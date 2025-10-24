@@ -37,6 +37,14 @@ jobs:
       - name: Verify kubectl installation
         run: kubectl version --client
 
+      - name: Install NGINX Ingress Controller
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace
+
       - name: Deploy Dhunn via Helm
         run: |
           helm upgrade --install dhunn-backend-helm ./musicapp-helm/dhunn-backend-chart --namespace musicapp-net --create-namespace
@@ -45,7 +53,7 @@ jobs:
         run: |
           helm upgrade --install dhunn-mysql-helm ./musicapp-helm/dhunn-mysql-chart --namespace musicapp-net --create-namespace
 
-      - name: Deploy Ingress via Helm
+      - name: Deploy Ingress Resources
         run: |
           helm upgrade --install ingress-helm ./musicapp-helm/ingress --namespace musicapp-net --create-namespace
 
@@ -61,4 +69,6 @@ jobs:
           helm upgrade --install grafana ./musicapp-helm/grafana-chart --namespace monitoring --create-namespace -f ./musicapp-helm/grafana-chart/values.yaml
 
       - name: Wait for pods to be ready
-        run: kubectl wait --for=condition=Ready pods --all --namespace musicapp-net --timeout=120s
+        run: |
+          kubectl wait --for=condition=Ready pods --all --namespace musicapp-net --timeout=120s
+          kubectl wait --for=condition=Ready pods --all --namespace monitoring --timeout=120s
