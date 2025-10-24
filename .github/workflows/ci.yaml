@@ -38,9 +38,6 @@ jobs:
       - name: Verify kubectl installation
         run: kubectl version --client
 
-      - name: Verify cluster access
-        run: kubectl cluster-info
-
       - name: Deploy Dhunn via Helm
         run: |
           helm upgrade --install dhunn-backend-helm ./musicapp-helm/dhunn-backend-chart --namespace musicapp-net --create-namespace
