@@ -1,0 +1,42 @@
+#Set-ExecutionPolicy RemoteSigned -Scope Process
+#.\github-runner.ps1
+
+
+# Prompt for inputs
+$repoUrl = Read-Host "Enter your GitHub repository URL (e.g., https://github.com/your-org/your-repo)"
+$token = Read-Host "Enter your GitHub runner registration token- Go-to https://github.com/singhupasana467/Dhunn-musicapp >settings > actions > runners > new"
+$runnerDir = "C:\actions-runner"
+
+# Create a folder under the drive root
+cd /
+mkdir actions-runner -Force
+cd actions-runner
+
+# Set variables
+$zipFile = "actions-runner-win-x64-2.329.0.zip"
+$downloadUrl = "https://github.com/actions/runner/releases/download/v2.329.0/$zipFile"
+$expectedHash = "f60be5ddf373c52fd735388c3478536afd12bfd36d1d0777c6b855b758e70f25"
+
+# Download the runner package only if it doesn't exist
+if (-Not (Test-Path $zipFile)) {
+    Write-Host "Downloading GitHub Actions runner..."
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile
+} else {
+    Write-Host "Runner zip already exists. Skipping download."
+}
+
+# Extract the installer only if it's not already extracted
+$extractPath = "$PWD\bin"
+if (-Not (Test-Path $extractPath)) {
+    Write-Host "Extracting runner package..."
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipFile", "$PWD")
+} else {
+    Write-Host "Runner already extracted. Skipping extraction."
+}
+
+# Configure the runner
+.\config.cmd --url $repoUrl --token $token
+
+# Run the runner
+./run.cmd
