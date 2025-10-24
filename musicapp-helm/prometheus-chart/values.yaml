@@ -9,6 +9,7 @@ server:
     - job_name: 'loki'
       static_configs:
         - targets: ['10.1.1.213:3100']
+  enabled: true
 
 
 prometheus-node-exporter:
