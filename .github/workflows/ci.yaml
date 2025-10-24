@@ -58,6 +58,7 @@ jobs:
           helm upgrade --install ingress-helm ./musicapp-helm/ingress --namespace musicapp-net --create-namespace
 
       - name: Install Prometheus via Helm
+        shell: powershell
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
