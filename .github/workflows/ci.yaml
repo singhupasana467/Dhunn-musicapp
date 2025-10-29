@@ -28,7 +28,7 @@ jobs:
           $trivyPath = "$env:USERPROFILE\trivy\trivy.exe"
           if (-Not (Test-Path $trivyPath)) {
             Write-Host "Trivy not found. Downloading..."
-            Invoke-WebRequest -Uri "https://github.com/aquasecurity/trivy/releases/download/v0.48.1/trivy_0.48.1_windows_amd64.zip" -OutFile "$env:USERPROFILE\trivy.zip"
+            Invoke-WebRequest -Uri "https://github.com/aquasecurity/trivy-action/archive/refs/tags/0.33.1.zip" -OutFile "$env:USERPROFILE\trivy.zip"
             Expand-Archive -Path "$env:USERPROFILE\trivy.zip" -DestinationPath "$env:USERPROFILE\trivy"
           } else {
             Write-Host "Trivy already installed. Skipping download."
