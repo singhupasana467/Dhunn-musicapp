@@ -22,12 +22,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Install Trivy manually
+      - name: Install Trivy manually (only if missing)
         shell: powershell
         run: |
-          Invoke-WebRequest -Uri "https://github.com/aquasecurity/trivy-action/archive/refs/tags/0.33.1.zip" -OutFile "trivy.zip"
-          Expand-Archive -Path "trivy.zip" -DestinationPath "$env:USERPROFILE\trivy"
+          $trivyPath = "$env:USERPROFILE\trivy\trivy.exe"
+          if (-Not (Test-Path $trivyPath)) {
+            Write-Host "Trivy not found. Downloading..."
+            Invoke-WebRequest -Uri "https://github.com/aquasecurity/trivy/releases/download/v0.48.1/trivy_0.48.1_windows_amd64.zip" -OutFile "$env:USERPROFILE\trivy.zip"
+            Expand-Archive -Path "$env:USERPROFILE\trivy.zip" -DestinationPath "$env:USERPROFILE\trivy"
+          } else {
+            Write-Host "Trivy already installed. Skipping download."
+          }
           $env:PATH += ";$env:USERPROFILE\trivy"
+
 
       - name: Scan Docker image with Trivy
         shell: powershell
