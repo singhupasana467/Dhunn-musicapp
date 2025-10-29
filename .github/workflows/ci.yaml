@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.10.0
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/musicapp-backend:latest
           format: table
