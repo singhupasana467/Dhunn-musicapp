@@ -10,7 +10,7 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
     env:
-      IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/musicapp-backend:latest
+      IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/musicapp-test:latest
 
     steps:
       - name: Checkout code
