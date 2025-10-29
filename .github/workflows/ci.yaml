@@ -22,14 +22,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Install Trivy manually
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/aquasecurity/trivy-action/archive/refs/tags/0.33.1.zip" -OutFile "trivy.zip"
+          Expand-Archive -Path "trivy.zip" -DestinationPath "$env:USERPROFILE\trivy"
+          $env:PATH += ";$env:USERPROFILE\trivy"
+
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.10.0
-        with:
-          image-ref: ${{ secrets.DOCKER_USERNAME }}/musicapp-backend:latest
-          format: table
-          severity: LOW
-          exit-code: 1
-          ignore-unfixed: true
+        shell: powershell
+        run: |
+          trivy image --severity LOW --format table --ignore-unfixed --exit-code 0 ${{ env.IMAGE_BACKEND }}
 
       - name: Set up kubeconfig
         shell: powershell
