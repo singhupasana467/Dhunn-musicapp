@@ -1,33 +1,29 @@
-FROM maven:3.9.4-eclipse-temurin-17
+# Stage 1: Build frontend
+FROM node:18 AS frontend-builder
+WORKDIR /app
+RUN git clone -b master https://github.com/ravi98397/dhunn.git .
+RUN npm install --force && npm run build
 
-# Install Git, Node.js, and dependencies
-RUN apt-get update && \
-    apt-get install -y git curl && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
+# Stage 2: Build backend
+FROM maven:3.9.4-eclipse-temurin-17 AS backend-builder
+WORKDIR /app
+RUN git clone -b master https://github.com/ravi98397/musicapi.git musicapi
+COPY --from=frontend-builder /app/build ./musicapi/src/main/resources/public
+WORKDIR /app/musicapi
+RUN mvn clean package -DskipTests
 
-# Set working directory
-WORKDIR /workspace
+# Stage 3: Runtime image
+FROM eclipse-temurin:17-jre
+WORKDIR /app
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy the compiled JAR
+COPY --from=backend-builder /app/musicapi/target/music-0.0.1-SNAPSHOT.jar ./app.jar
 
-# Clone and build frontend
-RUN git clone -b master https://github.com/ravi98397/dhunn.git && \
-    cd dhunn && \
-    npm install --force && \
-    npm run build
+# Copy entrypoint script from your local context
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
-# Clone backend from master branch
-RUN git clone -b master https://github.com/ravi98397/musicapi.git
+# Optional: use entrypoint
+# ENTRYPOINT ["./entrypoint.sh"]
 
-# Copy frontend build into backend resources
-RUN mkdir -p musicapi/src/main/resources/public && \
-    cp -r dhunn/build/* musicapi/src/main/resources/public
-
-# Build backend using pom.xml from root of musicapi
-WORKDIR /workspace/musicapi
-RUN mvn clean install -DskipTests
-
-# Run the Spring Boot application
-CMD ["java", "-jar", "target/music-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "app.jar"]

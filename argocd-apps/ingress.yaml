@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/singhupasana467/Dhunn-musicapp.git
+    targetRevision: main
+    path: ./musicapp-helm/ingress
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: musicapp-net
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
